@@ -3,6 +3,7 @@ import numpy as np
 import warnings
 
 def comp_wvec(nn, len_sc = None, condthresh = None):
+	#return frequency vector, wvec
 
 	#compute wvec if it does not depend on a rho scale or a condthresh. 
 	wvec = None
@@ -24,22 +25,21 @@ def comp_wvec(nn, len_sc = None, condthresh = None):
 
 
 def realfftbasis(nx,nn=None,wvec=None):
-# % Basis of sines+cosines for nn-point discrete fourier transform (DFT)
-# %
-# % [B,wvec] = realfftbasis(nx,nn,w)
-# %
-# % For real-valued vector x, realfftbasis(nx,nn)*x is equivalent to realfft(x,nn) 
-# %
-# % INPUTS:
-# %  nx - number of coefficients in original signal
-# %  nn - number of coefficients for FFT (should be >= nx, so FFT is zero-padded)
-# %  wvec (optional) - frequencies: positive = cosine
-# %
-# % OUTPUTS:
-# %   B [nn x nx] or [nw x nx] - DFT basis 
-# %   wvec - frequencies associated with rows of B
-# %
-# % See also: realfft, realifft
+#  Basis of sines+cosines for nn-point discrete fourier transform (DFT)
+# 
+#  [B,wvec] = realfftbasis(nx,nn,w)
+# 
+#  For real-valued vector x, realfftbasis(nx,nn)*x is equivalent to realfft(x,nn) 
+# 
+#  INPUTS:
+#   nx - number of coefficients in original signal
+#   nn - number of coefficients for FFT (should be >= nx, so FFT is zero-padded)
+#   wvec (optional) - frequencies: positive = cosine
+# 
+#  OUTPUTS:
+#    B [nn x nx]  - DFT basis 
+#    wvec - frequencies associated with rows of B
+# 
 	
 
 	if nn is None:
