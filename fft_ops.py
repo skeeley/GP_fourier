@@ -40,6 +40,7 @@ def realfftbasis(nx,nn=None,wvec=None):
 # %   wvec - frequencies associated with rows of B
 # %
 # % See also: realfft, realifft
+	
 
 	if nn is None:
 	    nn = nx

@@ -31,7 +31,7 @@ def conv_fourier(x,dims,minlens,nxcirc = None,condthresh = 1e8):
 	# Set circular bounardy (for n-point fft) to avoid edge effects, if needed
 	if nxcirc is None:
 	    #nxcirc = np.ceil(max([dims(:)'+minlens(:)'*4; dims(:)'*1.25]))'
-	    nxcirc = np.ceil(np.max(np.concatenate((dims+minlens*4 ,dims*1), axis = 0), axis = 0))
+	    nxcirc = np.ceil(np.max(np.concatenate((dims+minlens*4 ,dims), axis = 0), axis = 0))
 
 
 	nd = np.size(dims) # number of filter dimensions
@@ -111,9 +111,22 @@ def conv_fourier(x,dims,minlens,nxcirc = None,condthresh = 1e8):
 	Bx = [kron_ops.kronmult(Bffts,np.transpose(batch)) for batch in x]
 	Bx = [prune[ii] for prune in Bx]
 
-
-
 	return Bx, wwnrm, Bffts, ii, nxcirc, wvecs
+
+
+
+
+def conv_fourier_mult_neuron(x,dims,minlens,num_neurons,nxcirc = None,condthresh = 1e8):
+
+
+	Bys = np.array(conv_fourier(x[:,0,:],dims,minlens,nxcirc = None,condthresh = 1e8)[0])
+	N_four = Bys.shape[1]
+	if num_neurons >1:
+		for i in np.arange(1,num_neurons):
+			Bys = np.vstack((Bys,conv_fourier(x[:,i,:],dims,minlens,nxcirc = None,condthresh = 1e8)[0]))
+	Bys = np.reshape(Bys, [x.shape[0],num_neurons,N_four])
+	[wwnrm, Bffts, ii, nxcirc, wvecs] = conv_fourier(x[:,0,:],dims,minlens,nxcirc = None,condthresh = 1e8)[1:]
+	return Bys, wwnrm, Bffts, ii, nxcirc, wvecs
 
 
 
@@ -132,18 +145,20 @@ def conv_fourier_batch(x,dims,minlens,nxcirc = None,condthresh = 1e8):
 
 def compLSsuffstats_fourier(x,y,dims,minlens,nxcirc = None,condthresh = 1e8):
 	# Compute least-squares regression sufficient statistics in DFT basis
+	if nxcirc is None:
+		nxcirc = dims
 
-	[Bx, wwnrm, Bfft, ii] = conv_fourier(x,dims,minlens,nxcirc, condthresh)
+	[By, wwnrm, Bffts, ii, nxcirc, wvecs] = conv_fourier(y,dims,minlens,condthresh = condthresh)
 
+	y = np.reshape(y,[1,-1])
 	dd = {}
-	dd['xx'] = np.matmul(Bx,Bx, transpose_b=True)
-	dd['xy'] = Bx * y
-
+	dd['x'] = Bffts[0]@x.T
+	dd['xx'] = dd['x']@dd['x'].T
+	dd['xy'] = dd['x'] @ y.T
 	# Fill in other statistics
-	dd['yy'] = np.matmul(np.transpose(y),y) # marginal response variance
-	dd['nsamps'] = np.size(y,1)  # total number of samples
+	dd['yy'] = y@y.T# marginal response variance
 
-	return dd, wwnrm, Bfft, ii 
+	return dd, By, wwnrm, Bffts, ii, nxcirc, wvecs
 
 
 
