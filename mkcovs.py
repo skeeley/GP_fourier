@@ -1,4 +1,4 @@
-import numpy as np
+import autograd.numpy as np
 import warnings
 
 from . import fft_ops as rffb
@@ -35,7 +35,7 @@ def mkcovdiag_ASD(len_sc,rho,nxcirc,wvec= None,wwnrm= None):
 	else:
 		print("please provide either wvec or a normalized wvec into this function")
 
-	cdiag = np.sqrt(2*np.pi)*rho*len_sc*np.exp(-.5*ww*np.square(len_sc))
+	cdiag = np.squeeze(np.sqrt(2*np.pi)*rho*len_sc*np.exp(-.5*np.outer(ww,np.square(len_sc))))
 	return cdiag
 
 
@@ -173,7 +173,6 @@ def mkcovdiag_ASD_nD_tf(len_sc,rho,nxcirc, condthresh, wvec= None,wwnrm= None):
 
 	masked_ww = tf.boolean_mask(ww, ii)
 	masked_ww = tf.cast(masked_ww, dtype='float32')
-	print(masked_ww, len_sc)
 	cdiag = tf.sqrt(2*np.pi)*rho*len_sc*tf.exp(-.5*masked_ww*tf.square(len_sc))
 
 	

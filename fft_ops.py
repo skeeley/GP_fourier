@@ -2,12 +2,12 @@
 import numpy as np
 import warnings
 
-def comp_wvec(nn, len_sc = None, condthresh = None):
+def comp_wvec(nn, len_sc = 0, condthresh = None):
 	#return frequency vector, wvec
 
 	#compute wvec if it does not depend on a rho scale or a condthresh. 
 	wvec = None
-	if len_sc is not None:
+	if len_sc is not 0:
 		maxfreq = np.floor(nn/(np.pi*len_sc)*np.sqrt(.5*np.log(condthresh))) # max
 		if maxfreq < nn/2:
 			wvec = np.concatenate(([np.arange(int(maxfreq))],[np.arange(-int(maxfreq),0)]),axis = 1)[0]
@@ -65,8 +65,9 @@ def realfftbasis(nx,nn=None,wvec=None):
 
 	# make DC term into a unit vector
 	izero = [wvec==0][0] # index for DC term... careful of indexing here!
-	B[izero][0] = B[izero][0]/np.sqrt(2)  
-
+	inds = [i for i, x in enumerate(izero) if x]
+	newthing = B[inds]/np.sqrt(2)
+	B[inds] = newthing
 	# if nn is even, make Nyquist term (highest cosine term) a unit vector
 	if (nn/2 == np.max(wvec)):
 	    ncos = np.int(np.ceil((nn)/2)) # this is the index of the nyquist freq

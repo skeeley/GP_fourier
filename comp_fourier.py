@@ -5,7 +5,7 @@ from . import mkcovs, kron_ops
 from . import fft_ops as rffb
 
 
-def conv_fourier(x,dims,minlens,nxcirc = None,condthresh = 1e8):
+def conv_fourier(x,dims,minlens=0,nxcirc = None,condthresh = 1e8):
 	# Version of this NOT complete for higher dimensions 9/15/17!
 	#
 	# INPUT:
@@ -40,13 +40,8 @@ def conv_fourier(x,dims,minlens,nxcirc = None,condthresh = 1e8):
 	# generate here a list of your
 	#None of these quantities depend on the data directly
 	wvecs = [rffb.comp_wvec(nxcirc[jj],minlens[0][jj], condthresh) for jj in np.arange(nd)]
-	#cdiagvecs = [mkcovs.mkcovdiag_ASD(minlens[jj],1,nxcirc[jj],np.square(wvecs[jj]))  for jj in np.arange(nd)]
 	Bffts = [rffb.realfftbasis(dims[jj],nxcirc[jj],wvecs[jj])[0] for jj in np.arange(nd)]
 
-
-
-
-	#fprintf('\n Total # Fourier coeffs represented: %d\n\n', prod(ncoeff));
 
 	def f(switcher):  
 	    # switch based on stimulus dimension
@@ -103,6 +98,7 @@ def conv_fourier(x,dims,minlens,nxcirc = None,condthresh = 1e8):
 	# elif x.shape[0]>1: #Batched data. when the shape of x is 3 and dims is 2, for example. 
 
 	Bx = [kron_ops.kronmult(Bffts,np.transpose(batch)) for batch in x]
+	print(np.shape(ii), nd, x.shape)
 	Bx = [prune[ii] for prune in Bx]
 
 	return Bx, wwnrm, Bffts, nxcirc
@@ -112,15 +108,15 @@ def conv_fourier(x,dims,minlens,nxcirc = None,condthresh = 1e8):
 
 def conv_fourier_mult_neuron(x,dims,minlens,num_neurons,nxcirc = None,condthresh = 1e8):
 
-
-	Bys = np.array(conv_fourier(x[:,0,:],dims,minlens,nxcirc = None,condthresh = 1e8)[0])
-	N_four = Bys.shape[1]
+	print(x[:,0,:].shape)
+	Bys, wwnrm, Bffts, nxcirc = np.array(conv_fourier(x[:,0,:],dims,minlens,nxcirc = nxcirc,condthresh = condthresh))
+	N_four = np.array(Bys).shape[1]
 	if num_neurons >1:
 		for i in np.arange(1,num_neurons):
-			Bys = np.vstack((Bys,conv_fourier(x[:,i,:],dims,minlens,nxcirc = None,condthresh = 1e8)[0]))
+			Bys = np.vstack((Bys,conv_fourier(x[:,i,:],dims,minlens,nxcirc = nxcirc,condthresh = condthresh)[0]))
 	Bys = np.reshape(Bys, [x.shape[0],num_neurons,N_four])
-	[wwnrm, Bffts, ii, nxcirc, wvecs] = conv_fourier(x[:,0,:],dims,minlens,nxcirc = None,condthresh = 1e8)[1:]
-	return Bys, wwnrm, Bffts, ii, nxcirc, wvecs
+
+	return Bys, wwnrm, Bffts, nxcirc
 
 
 
@@ -137,14 +133,21 @@ def conv_fourier_batch(x,dims,minlens,nxcirc = None,condthresh = 1e8):
 
 
 
-def compLSsuffstats_fourier(x,y,dims,minlens,nxcirc = None,condthresh = 1e8):
+def compLSsuffstats_fourier(x,y,dims,num_neurons, minlens=0,nxcirc = None,condthresh = 1e8):
 	# Compute least-squares regression sufficient statistics in DFT basis
 	if nxcirc is None:
 		nxcirc = dims
 
-	[By, wwnrm, Bffts, ii, nxcirc, wvecs] = conv_fourier(y,dims,minlens,condthresh = condthresh)
+	print(len(y.shape))
+	if len(y.shape) is 3:
+		#if we have many y observations (multi-neuron)
+		[Bys, wwnrm, Bffts, nxcirc]  =conv_fourier_mult_neuron(y,dims,minlens,num_neurons,condthresh = condthresh,nxcirc = nxcirc)
 
-	y = np.reshape(y,[1,-1])
+
+	else:
+		[Bys, wwnrm, Bffts, nxcirc] = conv_fourier(y,dims,minlens,condthresh = condthresh,nxcirc = nxcirc)
+
+	y = np.reshape(y,[num_neurons,-1])
 	dd = {}
 	dd['x'] = Bffts[0]@x.T
 	dd['xx'] = dd['x']@dd['x'].T
@@ -152,8 +155,7 @@ def compLSsuffstats_fourier(x,y,dims,minlens,nxcirc = None,condthresh = 1e8):
 	# Fill in other statistics
 	dd['yy'] = y@y.T# marginal response variance
 
-	return dd, By, wwnrm, Bffts, ii, nxcirc, wvecs
-
+	return dd, Bys, wwnrm, Bffts, nxcirc
 
 
 
