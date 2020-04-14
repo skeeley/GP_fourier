@@ -1,8 +1,8 @@
-import autograd.numpy as np
+import jax.numpy as np
 import warnings
 
-from . import fft_ops as rffb
-import tensorflow as tf
+# from . import fft_ops as rffb
+# import tensorflow as tf
 
 def mkcovdiag_ASD(len_sc,rho,nxcirc,wvec= None,wwnrm= None):
 #  Eigenvalues of ASD covariance (as diagonalized in Fourier domain)
@@ -129,53 +129,76 @@ def mkcovdiag_ASD_wellcond(len_sc,rho,nxcirc,addition = 1e-8, wvec= None,wwnrm= 
 
 	return cdiag + addition
 
-def mkcovdiag_ASD_wellcond_tf(len_sc,rho,nxcirc,addition = 1e-8, wvec= None,wwnrm= None):
-#  Eigenvalues of ASD covariance (as diagonalized in Fourier domain)
-# 
-#  Identical to mkcovdiag_ASD except using tensorflow operations.
+# def mkcovdiag_ASD_wellcond_tf(len_sc,rho,nxcirc,addition = 1e-8, wvec= None,wwnrm= None):
+# #  Eigenvalues of ASD covariance (as diagonalized in Fourier domain)
+# # 
+# #  Identical to mkcovdiag_ASD except using tensorflow operations.
 
 
-# Compute diagonal of ASD covariance matrix
-	if wvec is not None:
-		wvecsq = np.square(wvec)
-		const = np.square(2*np.pi/nxcirc) # constant 
-		ww = wvecsq*const  # effective frequency vector
-	elif wwnrm is not None:
-		ww = wwnrm
-	else:
-		print("please provide either wvec or a normalized wvec into this function")
+# # Compute diagonal of ASD covariance matrix
+# 	if wvec is not None:
+# 		wvecsq = np.square(wvec)
+# 		const = np.square(2*np.pi/nxcirc) # constant 
+# 		ww = wvecsq*const  # effective frequency vector
+# 	elif wwnrm is not None:
+# 		ww = wwnrm
+# 	else:
+# 		print("please provide either wvec or a normalized wvec into this function")
 
-	cdiag = tf.sqrt(2*np.pi)*rho*len_sc*tf.exp(-.5*ww*tf.square(len_sc)) + addition
-
-	
-	return cdiag
-
-
-
-def mkcovdiag_ASD_nD_tf(len_sc,rho,nxcirc, condthresh, wvec= None,wwnrm= None):
-#  Eigenvalues of ASD covariance (as diagonalized in Fourier domain)
-# 
-#  Identical to mkcovdiag_ASD except using tensorflow operations.
-# Compute diagonal of ASD covariance matrix.
-# threshold again based on length scale!!!
-	if wvec is not None:
-		wvecsq = np.square(wvec)
-		const = np.square(2*np.pi/nxcirc) # constant 
-		ww = wvecsq*const  # effective frequency vector
-	elif wwnrm is not None:
-		ww = wwnrm
-	else:
-		print("please provide either wvec or a normalized wvec into this function")
-
-
-	ii = tf.less(ww*np.square(len_sc),2*np.log(condthresh)) # frequency coeffs to keep
-	ni = tf.reduce_sum(tf.cast(ii, tf.float32)) # rank of covariance after pruning
-
-	masked_ww = tf.boolean_mask(ww, ii)
-	masked_ww = tf.cast(masked_ww, dtype='float32')
-	cdiag = tf.sqrt(2*np.pi)*rho*len_sc*tf.exp(-.5*masked_ww*tf.square(len_sc))
+# 	cdiag = tf.sqrt(2*np.pi)*rho*len_sc*tf.exp(-.5*ww*tf.square(len_sc)) + addition
 
 	
-	return cdiag, ii, ni
+# 	return cdiag
+
+
+
+# def mkcovdiag_ASD_nD_tf(len_sc,rho,nxcirc, condthresh, wvec= None,wwnrm= None):
+# #  Eigenvalues of ASD covariance (as diagonalized in Fourier domain)
+# # 
+# #  Identical to mkcovdiag_ASD except using tensorflow operations.
+# # Compute diagonal of ASD covariance matrix.
+# # threshold again based on length scale!!!
+# 	if wvec is not None:
+# 		wvecsq = np.square(wvec)
+# 		const = np.square(2*np.pi/nxcirc) # constant 
+# 		ww = wvecsq*const  # effective frequency vector
+# 	elif wwnrm is not None:
+# 		ww = wwnrm
+# 	else:
+# 		print("please provide either wvec or a normalized wvec into this function")
+
+
+# 	ii = tf.less(ww*np.square(len_sc),2*np.log(condthresh)) # frequency coeffs to keep
+# 	ni = tf.reduce_sum(tf.cast(ii, tf.float32)) # rank of covariance after pruning
+
+# 	masked_ww = tf.boolean_mask(ww, ii)
+# 	masked_ww = tf.cast(masked_ww, dtype='float32')
+# 	cdiag = tf.sqrt(2*np.pi)*rho*len_sc*tf.exp(-.5*masked_ww*tf.square(len_sc))
+
+	
+# 	return cdiag, ii, ni
+
+
+# def mkcovdiag_ASD_tf(len_sc,rho,nxcirc,wvec= None,wwnrm= None):
+# #  Eigenvalues of ASD covariance (as diagonalized in Fourier domain)
+# # 
+# #  Identical to mkcovdiag_ASD except using tensorflow operations.
+# #  No need for computing of derivatives here
+
+
+# # Compute diagonal of ASD covariance matrix
+# 	if wvec is not None:
+# 		wvecsq = np.square(wvec)
+# 		const = np.square(2*np.pi/nxcirc) # constant 
+# 		ww = wvecsq*const  # effective frequency vector
+# 	elif wwnrm is not None:
+# 		ww = wwnrm
+# 	else:
+# 		print("please provide either wvec or a normalized wvec into this function")
+
+# 	cdiag = tf.sqrt(2*np.pi)*rho*len_sc*tf.exp(-.5*ww*tf.square(len_sc))
+
+	
+# 	return cdiag
 
 	
