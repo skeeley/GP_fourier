@@ -97,8 +97,8 @@ def conv_fourier(x,dims,minlens=0,nxcirc = None,condthresh = 1e8):
 
 	# elif x.shape[0]>1: #Batched data. when the shape of x is 3 and dims is 2, for example. 
 
-	Bx = [kron_ops.kronmult(Bffts,np.transpose(batch)) for batch in x]
-	print(np.shape(ii), nd, x.shape)
+	Bx = [kron_ops.kronmult(Bffts,np.transpose(batch)) for batch in x] 
+
 	Bx = [prune[ii] for prune in Bx]
 
 	return Bx, wwnrm, Bffts, nxcirc
@@ -108,7 +108,7 @@ def conv_fourier(x,dims,minlens=0,nxcirc = None,condthresh = 1e8):
 
 def conv_fourier_mult_neuron(x,dims,minlens,num_neurons,nxcirc = None,condthresh = 1e8):
 
-	print(x[:,0,:].shape)
+	#print(x[:,0,:].shape)
 	Bys, wwnrm, Bffts, nxcirc = np.array(conv_fourier(x[:,0,:],dims,minlens,nxcirc = nxcirc,condthresh = condthresh))
 	N_four = np.array(Bys).shape[1]
 	if num_neurons >1:
